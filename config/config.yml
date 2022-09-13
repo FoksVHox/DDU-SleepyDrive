@@ -1,0 +1,56 @@
+debug: true
+app_name: Pterodactyl
+uuid: 931e2141-2e9d-415a-bb6b-b121e8417f5b
+token_id: CUnolnUWdkO05uWg
+token: Ivif4H1Nh5lKsgfvtmksr6omRTvzXyuYK6XRMiM0GbrQo049rIWtU5c7qmulukOX
+api:
+    host: 0.0.0.0
+    port: 8080
+    ssl:
+        enabled: false
+        cert: /etc/letsencrypt/live/panel.nicjac.dk/fullchain.pem
+        key: /etc/letsencrypt/live/panel.nicjac.dk/privkey.pem
+    disable_remote_download: false
+    upload_limit: 100
+system:
+    root_directory: /var/lib/pterodactyl
+    log_directory: /var/log/pterodactyl
+    data: /var/lib/pterodactyl/volumes
+    archive_directory: /var/lib/pterodactyl/archives
+    backup_directory: /var/lib/pterodactyl/backups
+    tmp_directory: /tmp/pterodactyl
+    username: pterodactyl
+    timezone: ""
+    user:
+        uid: 0
+        gid: 0
+    disk_check_interval: 150
+    activity_send_interval: 60
+    activity_send_count: 100
+    check_permissions_on_boot: true
+    enable_log_rotate: true
+    websocket_log_count: 150
+    sftp:
+        bind_address: 0.0.0.0
+        bind_port: 2022
+        read_only: false
+    crash_detection:
+        enabled: true
+        detect_clean_exit_as_crash: true
+        timeout: 60
+    backups:
+        write_limit: 0
+    transfers:
+        download_limit: 0
+throttles:
+    enabled: true
+    lines: 2000
+    line_reset_interval: 100
+remote: https://panel.nicjac.dk
+remote_query:
+    timeout: 30
+    boot_servers_per_page: 50
+allowed_mounts:
+    - /mount/css
+allowed_origins: []
+allow_cors_private_network: false

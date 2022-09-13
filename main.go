@@ -1,4 +1,4 @@
-package SleepyDriveimport
+package main
 
 import (
 	"github.com/FoksVHox/SleepyDrive/cmd"

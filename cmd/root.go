@@ -4,6 +4,9 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"gocv.io/x/gocv"
+	"image"
+	"image/color"
 	log2 "log"
 	"net/http"
 	_ "net/http/pprof"
@@ -182,6 +185,91 @@ func rootCmdRun(cmd *cobra.Command, _ []string) {
 		return
 	}
 
+	go func() {
+
+		xmlFile := "test.xml"
+
+		// open webcam
+		webcam, err := gocv.VideoCaptureDevice(0)
+		if err != nil {
+			log.WithFields(log.Fields{"subsystem": "capture", "error": err}).Error("failed to open capture device")
+			return
+		}
+		defer func(webcam *gocv.VideoCapture) {
+			err := webcam.Close()
+			if err != nil {
+				log.WithFields(log.Fields{"subsystem": "capture", "error": err}).Error("failed to close capture device")
+			}
+		}(webcam)
+		fmt.Println("here 1")
+		// open display window
+		window := gocv.NewWindow("Face Detect")
+		defer func(window *gocv.Window) {
+			err := window.Close()
+			if err != nil {
+				log.WithFields(log.Fields{"subsystem": "capture-window", "error": err}).Error("failed to close window")
+			}
+		}(window)
+		fmt.Println("here 2")
+		// prepare image matrix
+		img := gocv.NewMat()
+		defer img.Close()
+		fmt.Println("here 3")
+
+		// color for the rect when faces detected
+		blue := color.RGBA{B: 255}
+		fmt.Println("here 4")
+		// load classifier to recognize faces
+		classifier := gocv.NewCascadeClassifier()
+		defer func(classifier *gocv.CascadeClassifier) {
+			err := classifier.Close()
+			if err != nil {
+				log.WithFields(log.Fields{"subsystem": "classifier", "error": err}).Error("failed to close classifier")
+			}
+		}(&classifier)
+
+		fmt.Println("here 5")
+
+		if !classifier.Load(xmlFile) {
+			log.WithFields(log.Fields{"subsystem": "classifier", "file": xmlFile}).Error(fmt.Sprintf("failed reading cascade file: %v", xmlFile))
+		}
+
+		fmt.Println("here 6")
+
+		log.Debug(fmt.Sprintf("start reading camera device %v", 0))
+
+		fmt.Println("here 7")
+
+		for {
+			if ok := webcam.Read(&img); !ok {
+				log.WithFields(log.Fields{"subsystem": "camera", "device": 0}).Error("cannot read device")
+			}
+			if img.Empty() {
+				continue
+			}
+
+			// detect faces
+			rects := classifier.DetectMultiScale(img)
+			log.Debug(fmt.Sprintf("found %d faces", len(rects)))
+
+			// draw a rectangle around each face on the original image,
+			// along with text identifying as "Human"
+			for _, r := range rects {
+				gocv.Rectangle(&img, r, blue, 3)
+
+				size := gocv.GetTextSize("Human", gocv.FontHersheyPlain, 1.2, 2)
+				pt := image.Pt(r.Min.X+(r.Min.X/2)-(size.X/2), r.Min.Y-2)
+				gocv.PutText(&img, "Human", pt, gocv.FontHersheyPlain, 1.2, blue, 2)
+			}
+
+			// show the image in the window, and wait 1 millisecond
+			window.IMShow(img)
+			if window.WaitKey(1) >= 0 {
+				break
+			}
+		}
+	}()
+
 	// Check if main http server should run with TLS. Otherwise reset the TLS
 	// config on the server and then serve it over normal HTTP.
 	if api.Ssl.Enabled {
@@ -194,6 +282,7 @@ func rootCmdRun(cmd *cobra.Command, _ []string) {
 	if err := s.ListenAndServe(); err != nil {
 		log.WithField("error", err).Fatal("failed to configure HTTP server")
 	}
+
 }
 
 // Reads the configuration from the disk and then sets up the global singleton

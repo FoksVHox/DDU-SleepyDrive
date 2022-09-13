@@ -20,7 +20,7 @@ import (
 	"github.com/creasty/defaults"
 )
 
-const DefaultLocation = "/etc/pterodactyl/config.yml"
+const DefaultLocation = "config/config.yml"
 
 // DefaultTLSConfig sets sane defaults to use when configuring the internal
 // webserver to listen for public connections.
